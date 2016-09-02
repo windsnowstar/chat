@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>socketIO - Simple chat</title>
+        <style>
+            * { font-family:tahoma; font-size:12px; padding:0px; margin:0px; }
+            p { line-height:18px; }
+            div { }
+            .textInput{width:500px;margin: 0 auto;margin-top: 50px;}
+            #content { padding:5px; background:#ddd; border-radius:5px; overflow-y: scroll;
+                border:1px solid #CCC; height: 160px;width: 400px;float: left;}
+            #input { border-radius:2px; border:1px solid #ccc;
+                margin-top:10px; padding:5px; width:400px;  }
+            #status { width:88px; display:block; float:left; margin-top:15px; }
+            .onlineList {
+                width: 200px;
+                height: 160px;
+                background-color: #ccc;
+                border: 1px solid #DDD;
+                margin-top: 50px;
+                margin-left: 420px;
+            }
+            li {
+                display: inline;border: 1px solid red;
+            }
+            .ul {
+                margin-left:auto; margin-right:auto;
+                width: 600px;
+
+            }
+        </style>
+    </head>
+    <script type="text/javascript">
+        //window.onbeforeunload = disConnect;
+    </script>
+    <body>
+        <div class="ul">
+            <div id="content"></div>
+            <div class="onlineList">
+                在线用户
+                <div id="list">
+
+                </div>
+            </div>
+
+        </div>
+
+
+        <div class="textInput">
+            <span id="status">connecting</span>
+            <input type="text" id="input" value="只能填写用户列表中用户"/>
+        </div>
+        
+     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+	 <script src="http://localhost:3001/js/client.js"></script>
+	
+    </body>
+</html>
