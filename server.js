@@ -47,6 +47,9 @@ http.listen(3001, function(){
 
 //io监听socket事件
 io.on('connection', function (connection) {
+    var self = this;
+    var id = connection.id.slice(0, 12);
+
     console.log((new Date()) + ' Connection from origin ' + connection.id + '.');
     var json = { logicId:"conn_success",users: users };
     connection.json.send(json);
@@ -94,12 +97,12 @@ io.on('connection', function (connection) {
       id: id
     });
     // 用户与服务器第二次握手，客户端传递信息给服务器
-    socket.on('createUser', function (data) {
+    connection.on('createUser', function (data) {
       // 用户 userId 作为 session 信息保存在用户客户端
       var userId = data.userId;
       var userName = data.userName;
       var userAvatar = data.userAvatar;
-      if(!self.onlineUser[userId]) {
+      
         // 广播新用户
         io.emit('broadcast', {
           id: userId,
@@ -108,16 +111,16 @@ io.on('connection', function (connection) {
           msg: '欢迎 ' + userName + ' 加入群聊！',
           type: "NEW"
         });
-      }
-      self.onlineUser[userId] = socket || {};
+
+      self.onlineUser[userId] = connection || {};
       for(var key in data) {
         self.onlineUser[userId][key] = data[key];
       }
     });
 
     // 断开连接
-    socket.on('forceDisconnect', function(data) {
-      var userId = socket.userId;
+    connection.on('forceDisconnect', function(data) {
+      var userId = connection.userId;
       var pw = data.pw;
       if(pw && password && pw === password) {
         userId = data.id;
