@@ -58,6 +58,7 @@ ChatRoomClient.prototype.init = function() {
 };
 
 ChatRoomClient.prototype.startup = function() {
+  var self = this;
   var xtpl = [
     '<div class="chatroom">',
       '<div class="chatroom-feedback"><a href="https://github.com/barretlee/blogChat" target="_blank">源码</a> | <a href="https://github.com/barretlee/blogChat/issues/new" target="_blank">反馈</a></div>',
@@ -104,6 +105,23 @@ ChatRoomClient.prototype.startup = function() {
                 if (logicId == 'conn_success') {//连接成功
                     alert("连接成功");
                 } else if (logicId == "chat") {
+                    //收到服务端返回的消息
+                     var targetId = $('.chatroom-tribe.current').attr('data-id');
+
+                    var data = {
+                      id: message.userName,
+                      msg: message.msg,
+                      name: message.userName,
+                      avatar: message.userAvatar,
+                      targetId: targetId
+                    };
+                    // if(!self.checkRobot()) return;
+                    // self.socket.emit(targetId == 'group' ? 'gm' : 'pm', data);
+                    self.addChatLog(data, targetId, false);
+
+
+
+
 
                     console.log(message);
                     // addMessage(message.from,message.msg,message.time);
@@ -142,15 +160,18 @@ ChatRoomClient.prototype.changeName = function() {
         userName: self.userName,
         userAvatar: self.userAvatar
       });
-      
+
       if(window.localStorage) {
         window.localStorage.setItem('userName', self.userName);
       }
       $('.chatroom-rename').remove();
           //输入名字设置用户名
           console.log(self.userName);
-            
-          myName = self.userName;//用户名
+          var names = self.userName.split(',');
+          // myName = self.userName;//用户名
+          myName = names[0];
+
+          currentToUser = names[1];
           // statusObj.text(myName);
           input.val("");
 
@@ -175,6 +196,7 @@ ChatRoomClient.prototype.changeName = function() {
 
 ChatRoomClient.prototype.bindEvent = function() {
   var self = this;
+  var io = this.io;
   $('.chatroom').on('keydown', function(evt) {
     if(evt.keyCode == 27) {
       $(this).addClass('chatroom-fold');

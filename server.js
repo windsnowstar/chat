@@ -12,10 +12,10 @@ var io = require('socket.io')(http);
 /**
  * Global variables
  */
-var history = [];
+var history = {};
 // list of currently connected clients (users)
 var users = ["user1","user2"];
-var clients = [];
+var clients = {};
 
 
 //静态文件
@@ -75,6 +75,9 @@ io.on('connection', function (connection) {
             }
             //2、检查目标用户是否在线，若在线，转发用户请求,否则，存为历史会话中
             var objConnect = clients[toUser];
+
+            console.log("objConnect:"+ objConnect);
+
             var chatJson = {logicId:"chat", from: from, time: message.time, msg: message.msg };
                 connection.json.send(chatJson);
             if (objConnect) {
@@ -89,6 +92,7 @@ io.on('connection', function (connection) {
                 history[from][toUser].push(chatJson);
             }
         }
+        console.log("history:" + history);
     });
 
 
@@ -97,26 +101,26 @@ io.on('connection', function (connection) {
       id: id
     });
     // 用户与服务器第二次握手，客户端传递信息给服务器
-    connection.on('createUser', function (data) {
-      // 用户 userId 作为 session 信息保存在用户客户端
-      var userId = data.userId;
-      var userName = data.userName;
-      var userAvatar = data.userAvatar;
+    // connection.on('createUser', function (data) {
+    //   // 用户 userId 作为 session 信息保存在用户客户端
+    //   var userId = data.userId;
+    //   var userName = data.userName;
+    //   var userAvatar = data.userAvatar;
       
-        // 广播新用户
-        io.emit('broadcast', {
-          id: userId,
-          name: userName,
-          avatar: userAvatar,
-          msg: '欢迎 ' + userName + ' 加入群聊！',
-          type: "NEW"
-        });
+    //     // 广播新用户
+    //     io.emit('broadcast', {
+    //       id: userId,
+    //       name: userName,
+    //       avatar: userAvatar,
+    //       msg: '欢迎 ' + userName + ' 加入群聊！',
+    //       type: "NEW"
+    //     });
 
-      self.onlineUser[userId] = connection || {};
-      for(var key in data) {
-        self.onlineUser[userId][key] = data[key];
-      }
-    });
+    //   self.onlineUser[userId] = connection || {};
+    //   for(var key in data) {
+    //     self.onlineUser[userId][key] = data[key];
+    //   }
+    // });
 
     // 断开连接
     connection.on('forceDisconnect', function(data) {
