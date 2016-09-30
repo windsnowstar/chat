@@ -58,10 +58,24 @@ io.on('connection', function (connection) {
     console.log((new Date()) + ' Connection accepted.');
 
     connection.on('message', function (message) {
-        console.log(message);
+        console.log("logicId:" + message.logicId);
+        console.log("onMessage:" + message);
+        console.log("clients:" + clients);
         if (message.logicId == "login") {
+            //客户端登录，携带用户信息和要发送给谁的用户信息
             clients[message.username] = connection; //将用户名与连接对应
             connection.username = message.username;
+            //如果对方在线，向客户端发起上线通知
+            var toUserId = message.toUser;
+            var objConnect = clients[toUserId];
+
+            console.log("user login, objConnect : " + objConnect);
+
+            var loginJson = {logicId: "login", onlineUser: message.username }
+            if(objConnect){
+              objConnect.json.send(loginJson);
+            }
+
         }else if(message.logicId == "chat") {//用户发起会话
             //1、查找该用户是否有历史消息
             var toUser = message.to;//会话目标

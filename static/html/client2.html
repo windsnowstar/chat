@@ -104,23 +104,28 @@ ChatRoomClient.prototype.startup = function() {
                 var logicId = message.logicId;
                 if (logicId == 'conn_success') {//连接成功
                     alert("连接成功");
+                } else if(logicId == 'login'){
+                    console.log( 'login:' + message);
+                    self.addInfoLog({
+                      msg: message.onlineUser+'上线了'
+                    }, 'group');
                 } else if (logicId == "chat") {
+
+                  if(message.from != myName){
                     //收到服务端返回的消息
                      var targetId = $('.chatroom-tribe.current').attr('data-id');
 
                     var data = {
-                      id: message.userName,
+                      id: message.from,
                       msg: message.msg,
-                      name: message.userName,
+                      name: message.from,
                       avatar: message.userAvatar,
                       targetId: targetId
                     };
                     // if(!self.checkRobot()) return;
                     // self.socket.emit(targetId == 'group' ? 'gm' : 'pm', data);
                     self.addChatLog(data, targetId, false);
-
-
-
+                  }
 
 
                     console.log(message);
@@ -176,7 +181,8 @@ ChatRoomClient.prototype.changeName = function() {
           input.val("");
 
           if (connection) {
-              connection.json.send({ logicId: "login", username: myName });
+              console.log("start login");
+              connection.json.send({ logicId: "login", username: myName ,toUser:currentToUser});
           }
           return;
 
@@ -351,6 +357,8 @@ ChatRoomClient.prototype.addChatLog = function(data, id, isSelf) {
     return htmlspecialchars(data && data[$1] || '');
   });
   var $target = $(".chatroom-item[data-id='" + htmlspecialchars(id) + "']");
+  alert("$log:"+$log);
+
   $target.append($log);
   this.scroll(id, isSelf);
 };
