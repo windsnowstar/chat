@@ -4,10 +4,13 @@ var express = require('express');
 var app = express();
 
 
+var httpRequire = require('http');
 
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
+var querystring = require('querystring');
+var url = require('url');
 
 /**
  * Global variables
@@ -39,6 +42,10 @@ app.get('/index', function(req, res){
 http.listen(3001, function(){
   console.log('listening on *:3001');
 });
+
+
+var WEB_SAVE_MSG_URL = "http://localhost:8080/looker/lkChatController/lkDirectAccess/saveOfflineUserChatMsg.do";
+
 
 
 /**
@@ -80,6 +87,7 @@ io.on('connection', function (connection) {
             //1、查找该用户是否有历史消息
             var toUser = message.to;//会话目标
             var from = message.username;//会话发起人
+            var pid = message.pid;
             if(history[toUser]&&history[toUser][from]){
                 var historyMsgs = [];
                 for (var i = 0; i < history[toUser][from].length; i++) {
@@ -93,9 +101,11 @@ io.on('connection', function (connection) {
             console.log("objConnect:"+ objConnect);
 
             var chatJson = {logicId:"chat", from: from, time: message.time, msg: message.msg };
-                connection.json.send(chatJson);
+            connection.json.send(chatJson);
+
             if (objConnect) {
                 objConnect.json.send(chatJson);
+              saveOfflineUserChatMsg(from, toUser,pid, message.msg, message.time, 1);
             } else {//存储于历史会话中
                 if (!history[from]||!history[from][toUser]) {
                     if (!history[from]) {
@@ -104,13 +114,16 @@ io.on('connection', function (connection) {
                     history[from][toUser] = [];
                 }
                 history[from][toUser].push(chatJson);
+
+                //发送到应用数据库表中保存
+               saveOfflineUserChatMsg(from, toUser,pid, message.msg, message.time, 1);
             }
         }
         console.log("history:" + history);
     });
 
 
-      // 用户与服务器第一次握手，服务器传递信息给客户端
+    // 用户与服务器第一次握手，服务器传递信息给客户端
     connection.emit('connected', {
       id: id
     });
@@ -167,3 +180,70 @@ io.on('connection', function (connection) {
     });
 
 });
+
+
+
+//var a = url.parse('http://example.com:8080/one?a=index&t=article&m=default');
+//console.log(a);
+//输出结果：
+//{
+//    protocol : 'http' ,
+//        auth : null ,
+//    host : 'example.com:8080' ,
+//    port : '8080' ,
+//    hostname : 'example.com' ,
+//    hash : null ,
+//    search : '?a=index&t=article&m=default',
+//    query : 'a=index&t=article&m=default',
+//    pathname : '/one',
+//    path : '/one?a=index&t=article&m=default',
+//    href : 'http://example.com:8080/one?a=index&t=article&m=default'
+//}
+
+
+function saveOfflineUserChatMsg(fromUserId, toUserId, pid, msgContent , createTime,msgStatus){
+   // var postParam = querystring.stringify({
+    var postParam = JSON.stringify({
+        pid:pid,
+        fromUserId: fromUserId,
+        toUserId: toUserId,
+        msgContent: msgContent,
+        createTime:createTime,
+        msgType : 'single',
+        msgStatus: msgStatus
+    });
+    console.log("postParam : ");
+    console.log(postParam);
+    var webUrl = url.parse(WEB_SAVE_MSG_URL);
+    var options = {
+        host: webUrl.hostname,
+        port: webUrl.port,
+        path: webUrl.path,
+        method: 'POST',
+        headers: {
+            //'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+            'Content-Type': 'application/application-json;charset=utf-8'
+        }
+    };
+
+    var req = httpRequire.request(options, function(res){
+        //res.setEncoding('uft8');
+
+        console.log('STATUS: ' + res.statusCode);
+        console.log('HEADERS: ' + JSON.stringify(res.headers));
+
+
+        res.on('data', function(data){
+            console.log("===============WEB_SAVE_MSG_URL success ==============");
+            console.log(data);
+        });
+
+        res.on('error', function(error){
+            console.log("===============WEB_SAVE_MSG_URL error ==============");
+            console.log(error);
+        });
+    });
+
+    req.write(postParam );
+    req.end();
+}
