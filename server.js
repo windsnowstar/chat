@@ -44,7 +44,7 @@ http.listen(3001, function(){
 });
 
 
-var WEB_SAVE_MSG_URL = "http://localhost:8080/looker/lkChatController/lkDirectAccess/saveOfflineUserChatMsg.do";
+var WEB_SAVE_MSG_URL = "http://localhost:9999/looker/lkChatController/lkDirectAccess/saveOfflineUserChatMsg.do";
 
 
 
