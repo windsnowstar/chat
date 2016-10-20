@@ -2,4 +2,5 @@ npm install --save
 
 npm install --save express
 
-node index.js
+#后台运行
+nohup node server.js > chatNode.log 2 &
